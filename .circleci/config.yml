@@ -10,52 +10,22 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            apk update
+            apk upgrade
             apk add --no-cache \
-              py-pip \
-              curl \
-              curl-dev
-            pip install \
-              docker-compose
+              py-pip           \
+              curl             \
+              curl-dev         \
+              bash
       - run:
           name: Build Branch Images
           command: |
             set +o pipefail
-            sh buildscripts/buildDevelopmentImages.sh
+            bash buildscripts/buildDevelopmentImages.sh
       - run:
           name: Test Branch Images
           command: |
-              sh buildscripts/testDevelopmentImages.sh
-
-  build_development:
-    working_directory: /app
-    docker:
-      - image: docker:17.05.0-ce-git
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --no-cache \
-              py-pip \
-              curl \
-              curl-dev
-            pip install \
-              docker-compose
-      - run:
-          name: Build Development Images
-          command: |
-            set +o pipefail
-            sh buildscripts/buildDevelopmentImages.sh
-      - run:
-          name: Test Development Images
-          command: |
-              sh buildscripts/testDevelopmentImages.sh
-      - run:
-          name: Push Dockerhub Development Images
-          command: |
-              docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-              sh buildscripts/releaseDevelopmentImages.sh
+            bash buildscripts/testDevelopmentImages.sh
 
   build_releases:
     working_directory: /app
@@ -67,26 +37,27 @@ jobs:
       - run:
           name: Install dependencies
           command: |
+            apk update
+            apk upgrade
             apk add --no-cache \
-              py-pip \
-              curl \
-              curl-dev
-            pip install \
-              docker-compose
+              py-pip           \
+              curl             \
+              curl-dev         \
+              bash
       - run:
           name: Build Docker Release Images
           command: |
             set +o pipefail
-            sh buildscripts/buildSupportedJiraImages.sh
+            bash buildscripts/buildSupportedJiraImages.sh
       - run:
           name: Test Docker Release Images
           command: |
-            sh buildscripts/testSupportedJiraImages.sh
+            bash buildscripts/testSupportedJiraImages.sh
       - run:
           name: Push Dockerhub Release Images
           command: |
-              docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-              sh buildscripts/releaseSupportedJiraImages.sh
+            docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+            bash buildscripts/releaseSupportedJiraImages.sh
 
 workflows:
   version: 2
@@ -96,15 +67,10 @@ workflows:
           filters:
             branches:
               only: master
-      - build_development:
-          filters:
-            branches:
-              only: dev
       - build_branch:
           filters:
             branches:
               ignore:
-                - dev
                 - master
   nightly:
     triggers:
