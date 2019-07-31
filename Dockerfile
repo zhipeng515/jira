@@ -66,7 +66,11 @@ RUN export GLIBC_VERSION=2.29-r0                               \
     # Dockerize                                                \
     && export DOCKERIZE_VERSION=v0.6.1                         \
     && export DOCKERIZE_DOWNLOAD_URL=https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-alpine-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
-    # Let's Encrypt \
+    # Install Dockerize                                        \
+    && wget -O dockerize.tar.gz $DOCKERIZE_DOWNLOAD_URL        \
+    && tar -C /usr/local/bin -xzvf dockerize.tar.gz            \
+    && rm dockerize.tar.gz                                     \
+    # Let's Encrypt                                            \
     && export LE_DOWNLOAD_URL=https://letsencrypt.org/certs/   \
     && export LE_AUTH_1=letsencryptauthorityx1.der             \
     && export LE_AUTH_2=letsencryptauthorityx2.der             \
@@ -96,7 +100,7 @@ RUN export GLIBC_VERSION=2.29-r0                               \
     && rm -rf /var/cache/apk/* /tmp/* /var/log/*
 
 # Version
-ARG JIRA_VERSION=8.2.1
+ARG JIRA_VERSION=8.2.4
 
 # Language
 ARG LANG_LANGUAGE=en

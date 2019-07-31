@@ -4,22 +4,22 @@ testImage() {
   set -o errexit
 
   local tag="$1"
-  local port="$2"
-  local iteration=0
-  docker run -d -p "$port":8080 --network jira_dockertestnet --name=jira."$tag" teamatldocker/jira:"$tag"
-  while ! docker run --rm --network jira_dockertestnet tutum/curl curl http://jira."$tag":8080; do
-    {
-      echo "Exit status of curl (${iteration}): $?"
-      echo "Retrying ..."
-    } 1>&2
-    if [ "$iteration" = '30' ]; then
-      exit 1
-    else
-      ((iteration = iteration + 1))
-    fi
-    sleep 10
-  done
-  docker stop "jira.$tag"
+  local containerName="jira.$tag"
+  local networkName="jira_dockertestnet"
+
+  # CircleCI does not (easily) allow exposing Docker ports so we always use port 8080
+  local port=8080
+  docker run --rm -d -p "$port":"$port" --network $networkName --name="$containerName" teamatldocker/jira:"$tag"
+
+  local response
+  set +e
+  response=$(docker run --rm --network $networkName byrnedo/alpine-curl -s -o /dev/null -I -w '%{http_code}' --retry-connrefuse --max-time 10 --retry 40 --retry-delay 20 --retry-max-time 600 http://"$containerName":"$port")
+  set -e
+  if [[ $response != 2* ]] && [[ $response != 3* ]]; then
+    exit 1
+  fi
+  docker stop "$containerName"
+
 }
 
 main() {
